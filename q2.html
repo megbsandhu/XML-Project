@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#btn_search").click(function () {
+                var output = ""
+                let countryToSearch = $("#country_name").val()
+                $.ajax({
+                    url: "Country.json",
+                    dataType: "json",
+                    success: (data) => {
+                        var provinceName = localName = population11 = noCities = "";
+
+                        //Step 1 - Read all countries
+                        var countries = data.country;
+                        //Step 2 - Find country 
+                        var countryFound = countries.find(c => c.name === countryToSearch)
+
+                        //Step 3 - Validate if country is undefined or null  
+                        if (countryFound == undefined || countryFound == null) {
+                            //TODO show alert to tell country is not found
+                            alert("Country not found");
+                        } else {
+                            //Step 4 - Validate if province exits
+                            var provinces = countryFound["province"]
+                            if (provinces) {
+                                //TODO FETCH ALL DATA
+                                var provincesObj = provinces.flatMap(p => {
+                                    var popu = p.population.find(p => p["@year"] == "2011")
+                                    var noCities = 0
+
+                                    if (Array.isArray(p.city)) {
+                                        noCities = p.city.length
+                                    } else {
+                                        noCities = 1
+                                    }
+
+                                    return {
+                                        provinceName: p.name,
+                                        localName: p.localname,
+                                        population: popu["#text"],
+                                        cityInProvince: noCities
+                                    }
+                                })
+
+                                provincesObj.forEach((value) => {
+                                    output += `
+                                    <tr>
+                                        <td>${value.provinceName}</td>
+                                        <td>${value.localName}</td>
+                                        <td>${value.population}</td>
+                                        <td>${value.cityInProvince}</td>
+                                    </tr>
+                    `;
+                                })
+
+                            } else {
+                                alert("Provinces not found");
+                            }
+                        }
+                        document.getElementById('output').innerHTML = output
+
+                    },
+                    error: (jq, status, error) => {
+
+                    }
+                })
+            })
+        })
+
+
+    </script>
+</head>
+
+<body>
+
+    <form>
+        <label>Country name</label>
+        <input type="text" id="country_name" placeholder="Country name" required />
+        <button type="button" id="btn_search">Search</button>
+    </form>
+    <br /><br />
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Province Name</th>
+                <th>Local Name</th>
+                <th>Population(2011)</th>
+                <th>No of Cities in the Province</th>
+            </tr>
+        </thead>
+        <tbody id="output"></tbody>
+    </table>
+
+</body>
+
+</html>
